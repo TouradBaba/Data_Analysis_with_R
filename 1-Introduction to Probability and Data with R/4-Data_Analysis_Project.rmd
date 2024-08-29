@@ -1,0 +1,131 @@
+### **Exploring the BRFSS Data**
+
+---
+title: "Exploring the BRFSS Data"
+output: 
+  html_document: 
+    fig_height: 4
+    highlight: pygments
+    theme: spacelab
+---
+
+## Setup
+
+### Load packages
+
+```{r load-packages, message = FALSE}
+library(ggplot2)
+library(dplyr)
+```
+
+### Load data
+
+```{r load-data}
+load("brfss2013.RData")
+```
+
+* * *
+
+## Part 1: Data
+
+The BRFSS (Behavioral Risk Factor Surveillance System) dataset for 2013 is a comprehensive collection of data related to health risk behaviors, preventive health practices, and healthcare access primarily related to chronic disease and injury in the United States. The data was collected via telephone surveys from a random sample of adults aged 18 years or older residing in households across various states and territories.
+
+### **Data Collection Method:**
+The data was gathered through landline and cellular phone interviews. Each interview collected data from a randomly selected adult in the household, and the results provide insight into the population’s health behaviors and outcomes.
+
+### **Implications of Data Collection Method:**
+The telephone survey method is effective in reaching a broad audience, but it may introduce some biases, such as non-response bias and coverage bias, especially considering the increasing prevalence of cell phone-only households. The results are representative of the non-institutionalized adult population of the U.S., but the findings should be interpreted with caution when generalizing to the entire population or inferring causality.
+
+* * *
+
+## Part 2: Research questions
+
+**Research question 1:** How does income level influence educational attainment, and what is the relationship between income and the highest level of education achieved?
+
+**Research question 2:** What is the relationship between lifestyle behaviors (e.g., physical activity, diet, smoking, alcohol consumption) and obesity rates?
+
+**Research question 3:** Is there an association between access to healthcare (Doctor Visits, Healthcare Coverage, and Mental Health) and Mental Health?
+
+* * *
+
+## Part 3: Exploratory Data Analysis
+
+### **Research question 1: The Impact of Income on Educational Attainment**
+
+```{r socioeconomic-status}
+# Filter the data for relevant variables
+data1 <- brfss2013 %>%
+  select(income2, educa, employ1)
+
+# Create a summary table to explore the relationship between socioeconomic status and education
+summary_table1 <- data1 %>%
+  group_by(income2, educa) %>%
+  summarise(
+    count = n()
+  )
+
+# Print the summary table
+summary_table1
+```
+The summary table highlights a significant relationship between income levels and educational attainment. Individuals with higher income levels tend to achieve higher levels of education(Positive correlation). This pattern suggests that economic resources play a crucial role in enabling access to educational opportunities, allowing those with higher income to pursue advanced degrees more readily. The data emphasize the importance of addressing income disparities to ensure equitable access to education, which is a key driver of long-term socioeconomic outcomes.
+
+### **Research question 2: Lifestyle Behaviors and Obesity**
+
+### Research question 2: Lifestyle Behaviors and Obesity
+
+```{r lifestyle-behaviors}
+# Filter the data for relevant variables
+data2 <- brfss2013 %>%
+  select(exerany2, fruitju1, vegetab1, smoke100, alcday5, X_bmi5cat)
+
+# Visualize the relationship between lifestyle behaviors and obesity using bar plots
+ggplot(data2, aes(x = as.factor(smoke100), fill = as.factor(X_bmi5cat))) +
+  geom_bar(position = "dodge") +
+  labs(title = "BMI Categories by Smoking Status", x = "Smoking Status", y = "Count") +
+  theme_minimal()
+
+ggplot(data2, aes(x = as.factor(exerany2), fill = as.factor(X_bmi5cat))) +
+  geom_bar(position = "dodge") +
+  labs(title = "BMI Categories by Physical Activity", x = "Physical Activity", y = "Count") +
+  theme_minimal()
+```
+Interpretation of BMI Categories
+Smoking Status: Smokers show a higher prevalence of overweight and obesity compared to non-smokers. This suggests smoking is linked to a greater likelihood of higher BMI categories.
+
+Physical Activity: Individuals who engage in physical activity tend to have a lower prevalence of overweight and obesity. This highlights the benefits of physical activity in managing weight.
+
+In summary, smoking is associated with higher BMI categories, while physical activity is associated with lower BMI categories, emphasizing the importance of addressing these factors for better health.
+
+### **Research question 3: Relationship Between Doctor Visits, Healthcare Coverage, and Mental Health**
+
+```{r healthcare-mentalhealth}
+
+# Filter the data for relevant variables
+data3 <- brfss2013 %>%
+  select(checkup1, menthlth, hlthpln1)
+
+# Summarize the data to get average mental health days for each frequency of doctor visits
+summary_data <- data3 %>%
+  group_by(checkup1) %>%
+  summarise(avg_mental_health_days = mean(menthlth, na.rm = TRUE))
+
+# Create and print the plot
+ggplot(summary_data, aes(x = factor(checkup1), y = avg_mental_health_days, fill = factor(checkup1))) +
+  geom_bar(stat = "identity") +
+  labs(title = "Average Number of Days Mental Health Not Good by Frequency of Doctor Visits",
+       x = "Frequency of Doctor Visits",
+       y = "Average Number of Days Mental Health Not Good") +
+  scale_fill_brewer(palette = "Set3") +
+  theme_minimal()
+
+# Summarize the relationship between healthcare coverage and mental health
+summary_table3 <- data3 %>%
+  group_by(hlthpln1) %>%
+  summarise(
+    avg_mental_health_days = mean(menthlth, na.rm = TRUE)
+  )
+
+# Print the summary table
+summary_table3
+```
+The results indicate that as the frequency of doctor visits increases, the number of days reported with poor mental health decreases, demonstrating a negative correlation. This suggests that more frequent checkups are linked to better mental health. Additionally, the summary table explores how healthcare coverage affect the average number of days of poor mental health.
