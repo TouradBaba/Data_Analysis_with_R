@@ -1,0 +1,174 @@
+---
+title: "Statistical inference with the GSS data"
+output: 
+  html_document: 
+    fig_height: 4
+    highlight: pygments
+    theme: spacelab
+---
+
+## Setup
+
+### Load packages
+
+```{r load-packages, message = FALSE}
+library(ggplot2)
+library(dplyr)
+library(statsr)
+```
+
+### Load data
+
+Make sure your data and R Markdown files are in the same directory. When loaded
+your data file will be called `gss`. Delete this note when before you submit 
+your work. 
+
+```{r load-data}
+load("gss.Rdata")
+```
+
+
+* * *
+
+## Part 1: Data 
+
+The dataset used in this analysis is a subset of the General Social Survey (GSS) Cumulative File (1972-2012). The GSS is a nationally representative survey of adults in the United States, conducted to monitor societal change and the complexities of American society. It covers various social, political, and economic topics.
+
+### Key details about the dataset:
+- **Sample size:** 57,061 observations and 114 variables.
+- **Variables:** The dataset contains variables representing demographic, socioeconomic, and attitudinal factors. Key variables include:
+  - `age`: Age of the respondent
+  - `sex`: Gender of the respondent
+  - `race`: Race of the respondent
+  - `educ`: Highest year of school completed
+  - `marital`: Marital status of the respondent
+  - `income06`: Total family income.
+
+A preview of the data by displaying the first few rows:
+
+```{r data-preview}
+head(gss)
+```
+
+```{r check-missing-values}
+# Check for missing values in each column of the dataset
+missing_values_summary <- sapply(gss, function(x) sum(is.na(x)))
+missing_values_summary
+```
+
+* * *
+## Part 2: Research question
+
+### Research Question:
+
+The research question guiding this analysis is:  
+**"What is the relationship between 'educ' (education level) and 'income06' (family income) in the United States?"**
+
+### Justification:
+
+This research question is of interest because it explores the impact of educational attainment on income, a critical factor in understanding socioeconomic mobility in the U.S. This question will help evaluate whether higher education is associated with greater family income, a topic often debated in policy and economic discussions.
+
+### Variables Involved:
+
+- **Education (`educ`)**: This variable represents the highest year of school completed by respondents.
+- **Family Income (`incom16)**: This variable represents the total family income at age 16.
+
+* * *
+
+## Part 3: Exploratory data analysis
+
+NOTE: Insert code chunks as needed by clicking on the "Insert a new code chunk" 
+button (green button with orange arrow) above. Make sure that your code is visible
+in the project you submit. Delete this note when before you submit your work.
+
+
+### Summary of Key Variables:
+
+The exploratory data analysis focuses on understanding the distribution and relationships between education level (`educ`) and family income at age 16 (`incom16`).
+
+#### Summary Statistics for Key Variables:
+
+```{r summary-statistics}
+# Summary statistics for 'educ' (education level) and 'incom16' (family income at age 16)
+summary(gss$educ)
+summary(gss$incom16)
+```
+
+#### Distribution of Education Levels:
+
+```{r plot-education}
+# Plot distribution of education levels
+ggplot(gss, aes(x = as.factor(educ))) + 
+  geom_bar(fill = "steelblue") + 
+  labs(title = "Distribution of Education Levels", x = "Years of Education", y = "Count") +
+  theme_minimal()
+```
+
+#### Distribution of Family Income at Age 16:
+
+```{r plot-incom16}
+# Plot distribution of family income at age 16
+ggplot(gss, aes(x = incom16)) + 
+  geom_bar(fill = "coral") + 
+  labs(title = "Distribution of Family Income at Age 16", x = "Family Income Category", y = "Count") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+#### Relationship Between Education and Family Income at Age 16:
+
+```{r plot-educ-incom16}
+# Plot to visualize the relationship between education level and family income at age 16
+ggplot(gss, aes(x = as.factor(educ), fill = incom16)) + 
+  geom_bar(position = "dodge") + 
+  labs(title = "Family Income  at Age 16 vs. Education Level", x = "Years of Education", y = "Count", fill = "Family Income at 16") +
+  theme_minimal()
+```
+
+This section explores the data distribution and the relationship between education and family income at age 16 using summary statistics and visualizations.
+
+* * *
+## Part 4: Inference
+
+In this section, we examine the relationship between education level (`educ`) and family income (`income06`) using a **Chi-Square test for independence**. This test allows us to assess whether family income is distributed differently across different education levels, providing insight into how education impacts income in the United States.
+
+
+### 1. Contingency Table:
+
+The contingency table summarizes the frequency of respondents in each combination of education level and family income category.
+
+```{r }
+# Create a contingency table of education and family income
+income_educ_table <- table(gss$educ, gss$income06)
+income_educ_table
+```
+
+
+### 2. Chi-Square Test:
+
+To test the relationship between education level and family income, we perform a **Chi-Square test for independence**. The test evaluates whether the distribution of family income across education levels is significantly different than expected under the assumption of independence.
+
+```{r }
+# Perform Chi-Square test for independence
+chi_square_result <- chisq.test(income_educ_table)
+chi_square_result
+```
+
+### Test Results:
+
+- **Chi-Square statistic (X²)**: 2885.9
+- **Degrees of freedom (df)**: 500
+- **P-value**: < 2.2e-16
+- **Warning**: "Chi-squared approximation may be incorrect" — this warning suggests that some cells in the contingency table may have low expected frequencies, which can affect the accuracy of the Chi-Square approximation. However, given the very large sample size, the results are likely still informative.
+
+
+### 3. Conclusion:
+
+Based on the Chi-Square test results:
+- **The p-value is extremely small (< 2.2e-16)**, far below the common significance threshold of 0.05. This means we **reject the null hypothesis**, indicating that there is a **significant association** between education level and family income in the United States.
+  
+- The large Chi-Square statistic (2885.9) also supports the conclusion that family income is distributed differently across education levels. This finding implies that higher or lower levels of education are associated with different income categories, reinforcing the notion that education plays a crucial role in determining family income.
+
+However, due to the warning about the Chi-Square approximation, further investigation using a method like Fisher's exact test (for smaller samples) or collapsing some of the income or education categories could be considered to ensure robustness.
+
+This result answers the research question by demonstrating that there is a statistically significant relationship between education level and family income, providing evidence that family income varies across different levels of educational attainment.
