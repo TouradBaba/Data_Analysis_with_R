@@ -1,6 +1,6 @@
-# Data Analysis with R Specialization (Coursera, Duke University)
+# Data Analysis with R Specialization
 
-This repository contains labs, assignments, and project files for the [**Data Analysis with R Specialization**](https://www.coursera.org/specializations/statistics) on Coursera, offered by **Duke University**. The specialization consists of three core courses that guide through the fundamental topics in statistics and data analysis using R. Below is an overview of the repository's structure.
+This repository contains labs, assignments, and project files for the [**Data Analysis with R Specialization**](https://www.coursera.org/specializations/statistics) on Coursera, offered by **Duke University**. The specialization consists of three courses that explore various topics in statistics and data analysis using R. Below is an overview of the repository's structure.
 
 ## 1. Introduction to Probability and Data with R
 This course introduces the basics of R, RStudio, data structures, and the foundations of probability and data analysis.
