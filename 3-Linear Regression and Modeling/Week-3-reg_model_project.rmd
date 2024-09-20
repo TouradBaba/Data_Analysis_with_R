@@ -1,0 +1,386 @@
+---
+title: "Modeling and prediction for movies"
+output: 
+  html_document: 
+    fig_height: 4
+    highlight: pygments
+    theme: spacelab
+---
+
+## Setup
+
+### Load packages
+
+```{r load-packages, message = FALSE}
+library(ggplot2)
+library(dplyr)
+library(statsr)
+```
+
+### Load data
+
+Make sure your data and R Markdown files are in the same directory. When loaded
+your data file will be called `movies`. Delete this note when before you submit 
+your work. 
+
+```{r load-data}
+load("movies.Rdata")
+```
+
+
+
+* * *
+
+## Part 1: Data
+
+The dataset consists of 651 randomly sampled movies produced and released before 2016. It contains various characteristics of these movies, including genre, runtime, IMDb ratings, Rotten Tomatoes scores, and whether the movie or its cast/directors were recognized in awards such as the Oscars. Some variables, such as the cast and director information, provide deeper insights into the movie’s production team and their success in winning major awards.
+
+### Key Variables
+
+- **title**: Title of the movie
+- **genre**: Genre of the movie (e.g., Action, Comedy, Drama, etc.)
+- **runtime**: Runtime of the movie in minutes
+- **imdb_rating**: IMDb rating on a scale of 1-10
+- **critics_score**: Critics score on Rotten Tomatoes (percentage)
+- **audience_score**: Audience score on Rotten Tomatoes (percentage)
+- **best_pic_win**: Whether the movie won a Best Picture Oscar (yes or no)
+- **imdb_num_votes**: Number of votes on IMDb
+
+
+### Data Cleaning
+
+Before proceeding with the analysis, we inspect the data for missing values and check for any anomalies. Depending on the analysis, we may remove irrelevant variables or adjust the structure of some variables.
+
+```{r data-cleaning}
+# Check for missing values
+summary(movies)
+
+# Remove irrelevant variables
+movies_cleaned <- movies %>%
+  select(title, genre, imdb_rating, critics_score, audience_score, best_pic_win, imdb_num_votes)
+
+# Check the structure of the cleaned dataset
+str(movies_cleaned)
+```
+
+This initial cleaning process ensures that the dataset is ready for further exploratory data analysis (EDA) and modeling.
+
+
+* * *
+
+## Part 2: Research question
+
+The research question for this project is:
+
+**What are the most important factors in predicting a movie's IMDb rating?**
+
+### Explanation:
+
+- The IMDb rating is a widely recognized metric for evaluating a movie’s popularity and quality based on viewer votes. Predicting IMDb ratings based on various movie characteristics such as, **genre**, **critics_score**, and **audience_score** can provide insight into what factors contribute most to a movie's success.
+  
+- This research question is of interest because IMDb ratings often reflect a movie's overall reception by the general public, and understanding the drivers behind these ratings could help filmmakers, studios, and marketers predict the performance of future movies.
+
+This analysis will focus on building a multiple linear regression model to identify which variables are most strongly associated with IMDb ratings and how well they predict this outcome.
+
+* * *
+
+## Part 3: Exploratory data analysis
+
+NOTE: Insert code chunks as needed by clicking on the "Insert a new code chunk" 
+button above. Make sure that your code is visible in the project you submit. 
+Delete this note when before you submit your work.
+
+### 1. Summary Statistics
+
+To get an overview of the data, we first calculate summary statistics for the key numerical variables such as `imdb_rating`, `runtime`, `critics_score`, and `audience_score`.
+
+```{r summary-statistics}
+# Summary statistics for key numerical variables
+summary(movies_cleaned %>% select(imdb_rating, runtime, critics_score, audience_score))
+```
+
+### 2. Distribution of IMDb Ratings
+
+Let's begin by visualizing the distribution of IMDb ratings to understand its spread and identify any potential skewness or outliers.
+
+```{r imdb-rating-distribution}
+# Plot the distribution of IMDb ratings
+ggplot(movies_cleaned, aes(x = imdb_rating)) +
+  geom_histogram(binwidth = 0.5, fill = "blue", color = "black", alpha = 0.7) +
+  labs(title = "Distribution of IMDb Ratings", x = "IMDb Rating", y = "Count")
+```
+
+### 3. Relationship between IMDb Rating and Runtime
+
+Next, we explore the relationship between the runtime of a movie and its IMDb rating. A scatter plot can reveal whether longer or shorter movies tend to have higher ratings.
+
+```{r imdb-vs-runtime}
+# Scatter plot of IMDb rating vs. runtime
+ggplot(movies_cleaned, aes(x = runtime, y = imdb_rating)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(title = "Relationship between Runtime and IMDb Rating", x = "Runtime (minutes)", y = "IMDb Rating")
+```
+
+### 4. IMDb Rating vs. Critics Score
+
+Since we are particularly interested in how professional critic reviews might relate to IMDb ratings, we visualize the relationship between IMDb ratings and `critics_score` using another scatter plot.
+
+```{r imdb-vs-critics-score}
+# Scatter plot of IMDb rating vs. critics score
+ggplot(movies_cleaned, aes(x = critics_score, y = imdb_rating)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(title = "Relationship between Critics Score and IMDb Rating", x = "Critics Score", y = "IMDb Rating")
+```
+
+### 5. IMDb Rating vs. Audience Score
+
+Similarly, audience perception might be just as important. We will now visualize the relationship between the audience score and IMDb rating.
+
+```{r imdb-vs-audience-score}
+# Scatter plot of IMDb rating vs. audience score
+ggplot(movies_cleaned, aes(x = audience_score, y = imdb_rating)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(title = "Relationship between Audience Score and IMDb Rating", x = "Audience Score", y = "IMDb Rating")
+```
+
+### 6. IMDb Ratings by Genre
+
+Finally, we investigate if there is any difference in IMDb ratings across different movie genres using a boxplot.
+
+```{r imdb-rating-by-genre}
+# Boxplot of IMDb ratings by genre
+ggplot(movies_cleaned, aes(x = genre, y = imdb_rating)) +
+  geom_boxplot(fill = "lightblue") +
+  labs(title = "IMDb Ratings by Genre", x = "Genre", y = "IMDb Rating") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+* * *
+
+## Part 4: Modeling
+
+NOTE: Insert code chunks as needed by clicking on the "Insert a new code chunk" 
+button above. Make sure that your code is visible in the project you submit. 
+Delete this note when before you submit your work.
+
+### 1. Model Setup
+
+We will build a multiple linear regression model where the response variable is the **IMDb rating**, and the predictor variables will include:
+
+- **runtime**: Runtime of the movie (in minutes)
+- **critics_score**: Critics score on Rotten Tomatoes
+- **audience_score**: Audience score on Rotten Tomatoes
+- **genre**: Genre of the movie
+
+Before building the model, let's inspect for multicollinearity and standardize variables if necessary.
+
+```{r check-correlations}
+# Check correlations between numerical predictors
+cor(movies_cleaned %>% select(critics_score, audience_score, imdb_rating))
+```
+
+### 2. Build the Model
+
+Now, we fit a multiple linear regression model using `lm()` in R.
+
+```{r build-model}
+# Build the multiple linear regression model
+imdb_model <- lm(imdb_rating ~ critics_score + audience_score + genre, data = movies_cleaned)
+
+# Display the summary of the model
+summary(imdb_model)
+```
+The p-values for the genre variables suggest that they are less significant compared to the other variables.
+
+```{r build-model}
+# Build another multiple linear regression model without genre variables
+imdb_model_revised <- lm(imdb_rating ~ critics_score + audience_score, data = movies_cleaned)
+
+# Display the summary of the model
+summary(imdb_model_revised)
+```
+
+### 3. Model Interpretation
+
+From the summary output of the model, we can interpret the key components:
+
+- **Intercept**: The baseline IMDb rating when all predictors are zero (though this isn't interpretable in context).
+- **Coefficients**: The effect of each predictor variable on IMDb rating. For example:
+  - For each additional minute of runtime, the IMDb rating is expected to change by the coefficient associated with `runtime`, holding other factors constant.
+  - A higher **critics_score** and **audience_score** is expected to increase the IMDb rating, all else being equal.
+
+Interpret the coefficients from the model summary for each variable:
+  
+```{r model-coefficients}
+# Coefficients of the model
+coef(imdb_model_revised)
+```
+
+### 4. Model Diagnostics
+
+We now check the assumptions of the linear regression model:
+
+- **Linearity**: The relationship between predictors and the response should be linear.
+- **Normality of residuals**: The residuals (differences between observed and predicted values) should follow a normal distribution.
+- **Homoscedasticity**: Constant variance of residuals.
+- **Multicollinearity**: Check variance inflation factors (VIF) to ensure predictors are not highly correlated.
+
+#### Residual Plots
+
+```{r residual-plot}
+# Residual vs Fitted plot to check for linearity and homoscedasticity
+plot(imdb_model, which = 1)
+
+# Q-Q plot to check normality of residuals
+plot(imdb_model, which = 2)
+```
+The residual plots indicate that the data is suitable for developing a linear model to predict IMDb ratings.
+
+#### Multicollinearity Check
+
+```{r check-vif}
+# Check for multicollinearity using VIF
+library(car)
+vif(imdb_model_revised)
+```
+Interpretation:
+The VIF values for both critics_score and audience_score are approximately 1.98, indicating that there is no significant multicollinearity present between these variables. This suggests that both predictors can be included in the model without concern for multicollinearity issues.
+
+
+### 5. Model Selection
+
+To further refine the model, we will compare models using different selection criteria such as **Adjusted R-squared** and **AIC (Akaike Information Criterion)**.
+
+```{r model-selection}
+# Calculate AIC for both models
+aic_results <- data.frame(
+  Model = c("Revised Model", "Previous Model"),
+  AIC = c(AIC(imdb_model_revised), AIC(imdb_model))
+)
+
+# Display AIC results
+print(aic_results)
+
+# Calculate and display R-squared values
+r_squared_results <- data.frame(
+  Model = c("Revised Model", "Previous Model"),
+  R_squared = c(summary(imdb_model_revised)$r.squared, summary(imdb_model)$r.squared),
+  Adjusted_R_squared = c(summary(imdb_model_revised)$adj.r.squared, summary(imdb_model)$adj.r.squared)
+)
+
+# Display R-squared results
+print(r_squared_results)
+
+```
+
+#### R-squared and Adjusted R-squared
+
+- **Revised Model**:
+  - **R-squared**: 0.7962
+  - **Adjusted R-squared**: 0.7956
+  
+- **First Model (with Genre)**:
+  - **R-squared**: 0.8119
+  - **Adjusted R-squared**: 0.8084
+
+**Interpretation**:
+- The **R-squared** value for the revised model indicates that approximately **79.62%** of the variability in IMDb ratings can be explained by the predictors. In comparison, the first model (which included genre) explains about **81.19%** of the variability, suggesting it fits the data slightly better.
+- The **Adjusted R-squared** for the first model also performs better, indicating it remains robust even with more predictors.
+
+#### AIC Results
+
+- **Revised Model**: AIC = **924.7655**
+- **First Model (with Genre)**: AIC = **892.6674**
+
+**Interpretation**:
+- The **AIC** values suggest that the first model, which included the genre variables, has a lower AIC. This indicates a better model fit when considering the complexity of the model (number of predictors). A lower AIC value is preferable as it suggests a better balance between model fit and complexity.
+
+### Conclusion
+
+Given the findings:
+- While both models perform well, the first model shows better performance in terms of both **R-squared** and **AIC**.
+- we choose to proceed with the **First Model** for further predictions and analyses, as it appears to provide a better fit for the data despite the higher p-values associated with the genre variables.
+
+### 6. Final Model Summary
+
+The final model includes the variables that contribute significantly to the prediction of IMDb ratings, based on p-values and adjusted R-squared. We can interpret this model in the context of our research question, where the key predictors of IMDb rating include **critics_score**, **audience_score** and **genre** .
+
+
+* * *
+
+## Part 5: Prediction
+
+NOTE: Insert code chunks as needed by clicking on the "Insert a new code chunk" 
+button above. Make sure that your code is visible in the project you submit. 
+Delete this note when before you submit your work.
+
+
+### 1. Select a New Movie
+
+A movie from 2016 is selected for prediction. For example, "La La Land" is chosen. The relevant predictor values for this movie are:
+
+- **critics_score**: 91 (example value)
+- **audience_score**: 87 (example value)
+
+### 2. Create a Data Frame for Prediction
+
+A data frame is created containing the values for the predictors to make the prediction.
+
+```{r create-prediction-data}
+# Create a new data frame for the movie "La La Land"
+new_movie <- data.frame(
+  critics_score = 91,
+  audience_score = 87,
+  genre = "Drama"
+)
+```
+
+### 3. Make Predictions
+
+The `predict()` function is used to estimate the IMDb rating for the new movie and calculate the prediction interval.
+
+```{r make-prediction}
+# Make predictions using the first model
+predicted_rating <- predict(imdb_model, newdata = new_movie, interval = "prediction", level = 0.95)
+
+# Display the predicted rating and prediction interval
+predicted_rating
+```
+
+### 4. Interpret the Results
+
+The output provides the predicted IMDb rating for "La La Land" along with the lower and upper bounds of the prediction interval:
+
+- **Predicted Rating**: The model estimates an IMDb rating of approximately **7.73** for "La La Land."
+- **Prediction Interval**: The interval ranges from approximately **6.79** to **8.66**. This means there is a 95% confidence that the true IMDb rating falls within this range.
+
+**Comparison with Actual Rating**: The actual IMDb rating for "La La Land" is **8.0**. This indicates that the model's prediction is close to the actual rating, falling within the upper part of the prediction interval. This suggests that the model provides a reasonable estimate, capturing the movie's positive reception while acknowledging some uncertainty in the prediction. 
+
+Overall, the inclusion of both critics' and audience scores, along with the genre, appears to have contributed to a solid prediction, validating the model's effectiveness in estimating IMDb ratings for movies.
+
+### 5. References
+
+References for the source of the predictor values are included. Links to IMDb or Rotten Tomatoes substantiate the scores used.
+
+```{r references}
+# Example of how to format references
+cat("References:\n")
+cat("1. IMDb page for 'La La Land': https://www.imdb.com/title/tt3783958/\n")
+```
+
+* * *
+
+## Part 6: Conclusion
+
+This analysis aimed to develop a predictive model for IMDb ratings using various movie characteristics, including critics' scores, audience scores, and genre. The following key findings emerged from the exploration and modeling:
+
+1. **Model Performance**: The first model, which included genre along with critics' and audience scores, showed a strong fit with an R-squared value of approximately **0.8119**. This indicates that about **81.19%** of the variability in IMDb ratings can be explained by the predictors. The model's AIC value of **892.6674** suggests it effectively balances complexity and fit.
+
+2. **Prediction Accuracy**: The prediction for "La La Land" yielded an estimated IMDb rating of **7.73**, with a 95% prediction interval ranging from **6.79** to **8.66**. This prediction is in close alignment with the actual IMDb rating of **8.0**, highlighting the model's reliability in estimating ratings for new movies.
+
+3. **Implications**: The inclusion of critics' and audience scores, along with genre, has demonstrated its value in accurately predicting IMDb ratings. The results suggest that these variables explain how movies are rated by viewers.
+
+4. **Limitations and Future Research**: While the model performed well, there are limitations to consider, such as potential multicollinearity between predictors and the exclusion of other variables that might also impact ratings. Future research could explore additional predictors, such as director accolades or box office performance, to enhance the model's robustness.
