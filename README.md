@@ -24,7 +24,7 @@ This course introduces the basics of R, RStudio, data structures, and the founda
 
 ### Data
 - **BRFSS 2013 Data**  
-  File: `brfss2013.RData`  
+  File: `brfss2013.rdata`  
   Dataset used in The Data Analysis Project
 
 ---

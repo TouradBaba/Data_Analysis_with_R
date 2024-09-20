@@ -21,7 +21,7 @@ library(dplyr)
 ### Load data
 
 ```{r load-data}
-load("brfss2013.RData")
+load("brfss2013.rdata")
 ```
 
 * * *

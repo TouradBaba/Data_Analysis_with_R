@@ -471,10 +471,6 @@ Google this tail number to find out more about the aircraft.
 # type your code for Question 8 here, and Knit
 nycflights <- nycflights %>%
   mutate(avg_speed= distance/(air_time/60))
-```
-
-```{r fastest-avg-speed-tailnum}
-# type your code for Question 8 here, and Knit
 nycflights %>%
   group_by(avg_speed) %>%
   arrange(desc(avg_speed)) %>%
@@ -513,14 +509,12 @@ nycflights <- nycflights %>%
   mutate(
     arr_type = ifelse(arr_delay <= 0, "on time", "delayed"),
     dep_type = ifelse(dep_delay < 5, "on time", "delayed")
-  ) 
-```
+  )
 
-
-```{r on-time-arr-perc}
 nycflights %>%
   filter(dep_type == "delayed") %>%
   summarize(
     on_time_arrival_percentage = mean(arr_type == "on time")
   )
+```
 ```

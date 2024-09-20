@@ -201,4 +201,4 @@ that we know only lands heads 20% of the time. We can adjust for this by adding
 an argument called `prob`, which provides a vector of two probability weights.
 
 ```{r sim-unfair-coin}
-sim_unfair_coin <- sample(coin_outcomes
+sim_unfair_coin <- sample(coin_outcomes)

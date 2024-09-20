@@ -96,7 +96,7 @@ To get an overview of the data, we first calculate summary statistics for the ke
 
 ```{r summary-statistics}
 # Summary statistics for key numerical variables
-summary(movies_cleaned %>% select(imdb_rating, runtime, critics_score, audience_score))
+summary(movies_cleaned %>% select(imdb_rating, critics_score, audience_score))
 ```
 
 ### 2. Distribution of IMDb Ratings
@@ -110,19 +110,7 @@ ggplot(movies_cleaned, aes(x = imdb_rating)) +
   labs(title = "Distribution of IMDb Ratings", x = "IMDb Rating", y = "Count")
 ```
 
-### 3. Relationship between IMDb Rating and Runtime
-
-Next, we explore the relationship between the runtime of a movie and its IMDb rating. A scatter plot can reveal whether longer or shorter movies tend to have higher ratings.
-
-```{r imdb-vs-runtime}
-# Scatter plot of IMDb rating vs. runtime
-ggplot(movies_cleaned, aes(x = runtime, y = imdb_rating)) +
-  geom_point(alpha = 0.6) +
-  geom_smooth(method = "lm", se = FALSE, color = "red") +
-  labs(title = "Relationship between Runtime and IMDb Rating", x = "Runtime (minutes)", y = "IMDb Rating")
-```
-
-### 4. IMDb Rating vs. Critics Score
+### 3. IMDb Rating vs. Critics Score
 
 Since we are particularly interested in how professional critic reviews might relate to IMDb ratings, we visualize the relationship between IMDb ratings and `critics_score` using another scatter plot.
 
@@ -134,7 +122,7 @@ ggplot(movies_cleaned, aes(x = critics_score, y = imdb_rating)) +
   labs(title = "Relationship between Critics Score and IMDb Rating", x = "Critics Score", y = "IMDb Rating")
 ```
 
-### 5. IMDb Rating vs. Audience Score
+### 4. IMDb Rating vs. Audience Score
 
 Similarly, audience perception might be just as important. We will now visualize the relationship between the audience score and IMDb rating.
 
@@ -146,7 +134,7 @@ ggplot(movies_cleaned, aes(x = audience_score, y = imdb_rating)) +
   labs(title = "Relationship between Audience Score and IMDb Rating", x = "Audience Score", y = "IMDb Rating")
 ```
 
-### 6. IMDb Ratings by Genre
+### 5. IMDb Ratings by Genre
 
 Finally, we investigate if there is any difference in IMDb ratings across different movie genres using a boxplot.
 
@@ -195,7 +183,7 @@ summary(imdb_model)
 ```
 The p-values for the genre variables suggest that they are less significant compared to the other variables.
 
-```{r build-model}
+```{r build-model-2}
 # Build another multiple linear regression model without genre variables
 imdb_model_revised <- lm(imdb_rating ~ critics_score + audience_score, data = movies_cleaned)
 

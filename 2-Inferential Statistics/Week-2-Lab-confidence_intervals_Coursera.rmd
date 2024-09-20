@@ -315,6 +315,7 @@ z_star_99
 ```{r plot-99-perc-cis}
 # type your code for the Exercise here, and Knit
 # Calculate the 99% confidence intervals
+sd_area <- sd(samp$area)
 ci_99 <- ci %>%
   mutate(lower_99 = lower - (z_star_99 - z_star_95) * (sd_area / sqrt(n)),
          upper_99 = upper + (z_star_99 - z_star_95) * (sd_area / sqrt(n)))
