@@ -92,6 +92,31 @@ This course dives into modeling relationships between variables using linear reg
 
 ---
 
+## Usage Instructions
+
+To get started with this repository, it is recommended to install **R** and **RStudio**. Additionally, make sure to install the following R packages:
+
+```r
+library(statsr)
+library(dplyr)
+library(shiny)
+library(ggplot2)
+```
+
+### Cloning the Repository
+
+Clone this repository to your local machine using the following command:
+
+```bash
+git clone <https://github.com/TouradBaba/Data_Analysis_with_R_Specialization.git>
+```
+
+### Running the R Markdown Files
+
+Once the repository is cloned, you can run the R Markdown (`.rmd`) files in RStudio. Open the desired `.rmd` file and use the "Knit" button to generate the output document.
+
+---
+
 ## Acknowledgments
 
 This repository is based on the **Data Analysis with R Specialization** offered by **Duke University** on Coursera. All credit for the course content goes to the creators of the specialization.
