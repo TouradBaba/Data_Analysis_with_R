@@ -108,7 +108,7 @@ library(ggplot2)
 Clone this repository to your local machine using the following command:
 
 ```bash
-git clone <https://github.com/TouradBaba/Data_Analysis_with_R_Specialization.git>
+git clone https://github.com/TouradBaba/Data_Analysis_with_R_Specialization.git
 ```
 
 ### Running the R Markdown Files
